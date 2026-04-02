@@ -31,8 +31,13 @@ for _env in (
         load_dotenv(_env)
 
 _DIR = Path(__file__).resolve().parent
+_PUBLIC = _DIR / "public"
+_INDEX_HTML = _PUBLIC / "index.html" if (_PUBLIC / "index.html").is_file() else _DIR / "index.html"
+_FAVICON_SVG = _PUBLIC / "favicon.svg" if (_PUBLIC / "favicon.svg").is_file() else _DIR / "favicon.svg"
 
-MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+# Vercel serverless request bodies are ~4.5MB on Hobby; larger uploads often fail with 500 before our code runs.
+_default_upload_cap = 4 * 1024 * 1024 if os.environ.get("VERCEL") else 12 * 1024 * 1024
+MAX_UPLOAD_BYTES = int(os.environ.get("READBETTER_MAX_UPLOAD_BYTES", str(_default_upload_cap)))
 MAX_PAGES = 80
 # Page text shorter than this (after strip) triggers OCR attempt
 MIN_TEXT_CHARS = 48
@@ -598,16 +603,27 @@ def extract_document(data: bytes) -> dict:
 
 
 async def homepage(_: Request) -> HTMLResponse:
-    html = (_DIR / "index.html").read_text(encoding="utf-8")
+    html = _INDEX_HTML.read_text(encoding="utf-8")
     return HTMLResponse(html)
 
 
 async def favicon(_: Request) -> FileResponse:
-    return FileResponse(_DIR / "favicon.svg", media_type="image/svg+xml")
+    return FileResponse(_FAVICON_SVG, media_type="image/svg+xml")
 
 
 async def extract_pdf(request: Request) -> JSONResponse:
-    form = await request.form()
+    try:
+        form = await request.form()
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse(
+            {
+                "error": (
+                    "Upload could not be read. On Vercel, keep PDFs under ~4 MB on Hobby, "
+                    f"or set READBETTER_MAX_UPLOAD_BYTES. Details: {e!s}"
+                ),
+            },
+            status_code=413,
+        )
     upload = form.get("file")
     if upload is None or not hasattr(upload, "read"):
         return JSONResponse({"error": "Missing file field `file`"}, status_code=400)
