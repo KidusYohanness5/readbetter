@@ -32,8 +32,10 @@ for _env in (
 
 _DIR = Path(__file__).resolve().parent
 _PUBLIC = _DIR / "public"
-_INDEX_HTML = _PUBLIC / "index.html" if (_PUBLIC / "index.html").is_file() else _DIR / "index.html"
-_FAVICON_SVG = _PUBLIC / "favicon.svg" if (_PUBLIC / "favicon.svg").is_file() else _DIR / "favicon.svg"
+# Root copies are required for Vercel: `public/` is CDN-only and not in the Python bundle.
+# Prefer root (next to app.py), fall back to public/ for local setups.
+_INDEX_HTML = _DIR / "index.html" if (_DIR / "index.html").is_file() else _PUBLIC / "index.html"
+_FAVICON_SVG = _DIR / "favicon.svg" if (_DIR / "favicon.svg").is_file() else _PUBLIC / "favicon.svg"
 
 # Vercel serverless request bodies are ~4.5MB on Hobby; larger uploads often fail with 500 before our code runs.
 _default_upload_cap = 4 * 1024 * 1024 if os.environ.get("VERCEL") else 12 * 1024 * 1024
