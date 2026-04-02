@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from starlette.routing import Route
 
 _here = Path(__file__).resolve().parent
@@ -602,6 +602,10 @@ async def homepage(_: Request) -> HTMLResponse:
     return HTMLResponse(html)
 
 
+async def favicon(_: Request) -> FileResponse:
+    return FileResponse(_DIR / "favicon.svg", media_type="image/svg+xml")
+
+
 async def extract_pdf(request: Request) -> JSONResponse:
     form = await request.form()
     upload = form.get("file")
@@ -668,6 +672,7 @@ async def tts_speech(request: Request) -> Response:
 
 routes = [
     Route("/", homepage, methods=["GET"]),
+    Route("/favicon.svg", favicon, methods=["GET"]),
     Route("/api/extract", extract_pdf, methods=["POST"]),
     Route("/api/tts", tts_speech, methods=["POST"]),
 ]
