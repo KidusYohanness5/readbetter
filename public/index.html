@@ -1304,8 +1304,15 @@
         });
         if (runId !== playbackToken) return;
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || res.statusText);
+          const errText = await res.text();
+          let msg = res.statusText;
+          try {
+            const j = errText ? JSON.parse(errText) : {};
+            if (j.error) msg = j.error;
+          } catch {
+            if (errText && !errText.trimStart().startsWith("<")) msg = errText.slice(0, 200);
+          }
+          throw new Error(msg);
         }
         const blob = await res.blob();
         if (runId !== playbackToken) return;
@@ -1478,9 +1485,22 @@
         const fd = new FormData();
         fd.append("file", f);
         const res = await fetch("/api/extract", { method: "POST", body: fd });
-        extractData = await res.json();
+        const raw = await res.text();
+        try {
+          extractData = raw ? JSON.parse(raw) : {};
+        } catch {
+          const hint =
+            raw.trimStart().startsWith("<") || raw.includes("Internal Server")
+              ? `Server error (${res.status}). Check Vercel function logs — response was not JSON.`
+              : (raw.slice(0, 200) || res.statusText);
+          showErr(hint);
+          transcriptSkeleton.hidden = true;
+          dropZone.classList.remove("extracting");
+          setStatusState("", "");
+          return;
+        }
         if (!res.ok) {
-          showErr(extractData.error || "Extract failed");
+          showErr(extractData.error || `Extract failed (${res.status})`);
           transcriptSkeleton.hidden = true;
           dropZone.classList.remove("extracting");
           setStatusState("", "");
