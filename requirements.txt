@@ -1,0 +1,8 @@
+pymupdf>=1.24.0
+uvicorn[standard]>=0.27.0
+python-dotenv>=1.0.0
+openai>=1.40.0
+starlette>=0.37.0
+# Optional: OCR fallback (Tesseract + Pillow)
+# pytesseract>=0.3.10
+# Pillow>=10.0.0

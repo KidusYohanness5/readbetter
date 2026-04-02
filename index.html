@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>read.better</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-ui: "Sora", system-ui, -apple-system, sans-serif;
+      --font-reading: "Lora", Georgia, "Times New Roman", serif;
+      --font-display: "Fraunces", Georgia, serif;
+      --text-xs: 0.72rem;
+      --text-sm: 0.8125rem;
+      --text-base: 0.9375rem;
+      --text-lg: 1.05rem;
+      --text-xl: 1.35rem;
+      --text-2xl: clamp(1.65rem, 4vw, 2.35rem);
+      --ink: #2a2420;
+      --ink-soft: #4a423c;
+      --muted: #7a6f68;
+      --cream: #faf6f1;
+      --cream-deep: #ebe4da;
+      --paper: #fffefb;
+      --paper-warm: #faf7f2;
+      --line: #e3dbd2;
+      --line-strong: #cfc4b8;
+      --ember: #c6553b;
+      --ember-hover: #a8432e;
+      --ember-soft: rgba(198, 85, 59, 0.14);
+      --sage: #2f6f5e;
+      --sage-soft: rgba(47, 111, 94, 0.12);
+      --focus: #c6553b;
+      --danger-bg: #fde8e6;
+      --danger-border: #e8a598;
+      --danger-text: #7c2d22;
+      --radius: 18px;
+      --radius-sm: 10px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 2px 8px rgba(42, 36, 32, 0.04);
+      --shadow-lift: 0 16px 48px rgba(42, 36, 32, 0.1);
+      --transcript-scale: 1;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-ui);
+      font-size: var(--text-base);
+      color: var(--ink);
+      line-height: 1.55;
+      background:
+        radial-gradient(100% 90% at 0% 0%, rgba(198, 85, 59, 0.07) 0%, transparent 55%),
+        radial-gradient(80% 70% at 100% 10%, rgba(47, 111, 94, 0.06) 0%, transparent 50%),
+        linear-gradient(168deg, var(--cream) 0%, var(--cream-deep) 100%);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 3px;
+    }
+    button:focus-visible,
+    select:focus-visible,
+    input[type="checkbox"]:focus-visible,
+    input[type="range"]:focus-visible,
+    .drop-zone:focus-within,
+    #transcript .sent:focus-visible,
+    .textLayer span.word-span:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+    button::-moz-focus-inner { border: 0; }
+
+    .app-root { min-height: 100vh; display: flex; flex-direction: column; }
+
+    .brand-header {
+      padding: 1.35rem clamp(1rem, 4vw, 2.5rem) 1.25rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 254, 251, 0.72);
+      backdrop-filter: blur(12px);
+    }
+    .brand-mark { max-width: 32rem; }
+    .logo {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: var(--text-2xl);
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+    .logo-accent { color: var(--ember); font-weight: 500; }
+    .tagline {
+      margin: 0.45rem 0 0;
+      font-size: var(--text-sm);
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .app-main {
+      flex: 1;
+      padding: clamp(1rem, 3vw, 2rem);
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .app-grid {
+      display: grid;
+      gap: clamp(1.25rem, 2.5vw, 2rem);
+      align-items: start;
+    }
+    @media (min-width: 1024px) {
+      .app-grid {
+        grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+      }
+    }
+
+    .rail-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.25rem;
+      box-shadow: var(--shadow-soft), var(--shadow-lift);
+    }
+    @media (min-width: 1024px) {
+      .control-rail { position: sticky; top: 1.25rem; }
+    }
+
+    .stage { min-width: 0; }
+
+    .upload-row { margin-bottom: 1.1rem; }
+    .drop-zone {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.85rem 1rem;
+      padding: 1rem 1.1rem;
+      border: 2px dashed var(--line-strong);
+      border-radius: var(--radius-sm);
+      background: var(--paper-warm);
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+    .drop-zone.dragover {
+      border-color: var(--ember);
+      background: var(--ember-soft);
+      box-shadow: 0 0 0 4px var(--ember-soft);
+    }
+    .drop-zone.extracting {
+      opacity: 0.65;
+      pointer-events: none;
+    }
+    .drop-zone .hint {
+      font-size: var(--text-sm);
+      color: var(--muted);
+      flex: 1;
+      min-width: 10rem;
+      line-height: 1.45;
+    }
+    .drop-zone .hint strong { color: var(--ink); font-weight: 600; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    input[type="file"].file-input-hidden {
+      position: absolute;
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    button {
+      font-family: var(--font-ui);
+      background: var(--ember);
+      color: #fff;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      border-radius: var(--radius-pill);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background 0.15s ease, transform 0.12s ease;
+    }
+    button:hover:not(:disabled) { background: var(--ember-hover); }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    button.secondary {
+      background: var(--paper-warm);
+      color: var(--ink);
+      border: 1px solid var(--line-strong);
+    }
+    button.secondary:hover:not(:disabled) {
+      background: #fff;
+      border-color: var(--ink-soft);
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      font-weight: 500;
+      border-radius: var(--radius-sm);
+    }
+    button.ghost:hover:not(:disabled) {
+      color: var(--ink);
+      border-color: var(--line-strong);
+    }
+
+    .control-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.65rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--line);
+    }
+    .control-group:first-of-type { border-top: none; padding-top: 0; }
+    .control-group-label {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--muted);
+      width: 100%;
+      margin: 0;
+    }
+    @media (min-width: 520px) {
+      .control-group-label {
+        width: auto;
+        min-width: 4.25rem;
+        margin-right: 0.35rem;
+      }
+    }
+    label.field-label {
+      font-size: var(--text-sm);
+      color: var(--ink-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 500;
+    }
+    select {
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.6rem;
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: 500;
+    }
+    input[type="range"] {
+      vertical-align: middle;
+      accent-color: var(--ember);
+      min-width: 5rem;
+    }
+
+    .seek-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      flex: 1;
+      min-width: min(100%, 240px);
+    }
+    .seek-row input[type="range"]#seekBar {
+      flex: 1;
+      min-width: 140px;
+      max-width: 100%;
+    }
+    .seek-page-row {
+      flex-basis: 100%;
+      width: 100%;
+      margin-top: 0.2rem;
+    }
+    #seekLabel {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 8.5rem;
+      letter-spacing: 0.02em;
+    }
+    #seekLabel:empty {
+      display: none;
+    }
+
+    .status-wrap {
+      margin-top: 0;
+    }
+    .status-wrap:has(#status:not(:empty)) {
+      margin-top: 1rem;
+    }
+    /* Empty status was showing as a stray bordered strip below “More”. */
+    #status:empty {
+      display: none;
+    }
+    .status {
+      font-size: var(--text-xs);
+      font-weight: 500;
+      color: var(--ink-soft);
+      margin: 0;
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--radius-sm);
+      background: var(--paper-warm);
+      border: 1px solid var(--line);
+      line-height: 1.45;
+      max-width: 100%;
+    }
+    .status[data-state="ready"] {
+      color: var(--sage);
+      border-color: rgba(47, 111, 94, 0.35);
+      background: var(--sage-soft);
+    }
+    .status[data-state="playing"] {
+      color: var(--ink);
+      border-color: rgba(198, 85, 59, 0.4);
+      background: var(--ember-soft);
+    }
+    .status[data-state="paused"] {
+      color: #8a6a2a;
+      border-color: rgba(180, 140, 50, 0.35);
+      background: rgba(212, 175, 55, 0.12);
+    }
+    .status[data-state="done"] {
+      color: #5c4a8a;
+      border-color: rgba(92, 74, 138, 0.25);
+      background: rgba(92, 74, 138, 0.08);
+    }
+    .status[data-state="extracting"] {
+      color: var(--ink);
+      border-color: var(--ember);
+      background: var(--ember-soft);
+    }
+
+    .err-banner {
+      margin-top: 0.85rem;
+      padding: 0.75rem 0.95rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--danger-border);
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      font-size: var(--text-sm);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .err-banner[hidden] { display: none !important; }
+    .err-text { flex: 1; min-width: 0; }
+    .err-dismiss {
+      flex-shrink: 0;
+      padding: 0.25rem 0.55rem;
+      font-size: var(--text-xs);
+    }
+
+    .doc-layout {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1rem, 2vw, 1.5rem);
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+    .panel-pdf { padding: 0; }
+    .panel-transcript {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .panel-head {
+      font-family: var(--font-ui);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin: 0;
+      padding: 0.85rem 1.1rem;
+      background: linear-gradient(180deg, var(--paper-warm) 0%, var(--paper) 100%);
+      border-bottom: 1px solid var(--line);
+    }
+    .panel-head.transcript-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem 1rem;
+    }
+    .panel-head.transcript-head .head-title {
+      margin: 0;
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      color: inherit;
+    }
+    .transcript-size-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.04em;
+      color: var(--ink-soft);
+    }
+    .transcript-size-label input[type="range"] {
+      width: 7rem;
+      min-width: 5rem;
+    }
+
+    .pdf-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem 0.65rem;
+      padding: 0.55rem 1rem;
+      background: var(--paper-warm);
+      border-bottom: 1px solid var(--line);
+    }
+    .pdf-toolbar .zoom-label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--muted);
+      min-width: 3rem;
+      font-variant-numeric: tabular-nums;
+    }
+    button.pdf-tool {
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius-sm);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      min-width: 2.25rem;
+    }
+
+    .pdf-scroll {
+      position: relative;
+      /* Fixed height keeps layout stable (no ResizeObserver feedback / scrollbar thrash). */
+      height: min(52vh, 560px);
+      overflow: auto;
+      background: linear-gradient(180deg, #ede8e0 0%, #e5dfd6 100%);
+      scrollbar-gutter: stable;
+    }
+    .pdf-scroll::after {
+      content: "";
+      pointer-events: none;
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      margin-top: -32px;
+      background: linear-gradient(transparent, rgba(229, 223, 214, 0.95));
+      display: block;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pdf-scroll::after { display: none; }
+    }
+    #pdfViewer {
+      min-height: 0;
+      padding: 0.75rem;
+    }
+    .pdf-page-wrap {
+      position: relative;
+      margin: 0 auto 1.1rem;
+      box-shadow: 0 8px 32px rgba(42, 36, 32, 0.12), 0 2px 8px rgba(42, 36, 32, 0.06);
+      border-radius: 2px;
+    }
+    .pdf-page-wrap:last-child { margin-bottom: 0.35rem; }
+    .pdf-page-wrap canvas { display: block; background: #fff; }
+    .textLayer {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+      opacity: 0.92;
+      line-height: 1;
+      pointer-events: auto;
+    }
+    .textLayer span.word-span {
+      position: absolute;
+      white-space: pre;
+      cursor: pointer;
+      transform-origin: 0 0;
+      color: transparent;
+      mix-blend-mode: multiply;
+      border-radius: 1px;
+    }
+    .textLayer span.word-span.active {
+      background: transparent !important;
+      box-shadow: none;
+      border-radius: 0;
+      color: transparent;
+      border-bottom: 2px solid var(--sage);
+      padding-bottom: 0.08em;
+    }
+
+    .transcript-scroll {
+      position: relative;
+      height: min(48vh, 560px);
+      overflow-y: auto;
+      /* No bottom padding here — it left a gap below the sticky fade (“two bottoms”). Space lives on #transcript. */
+      padding: 0.85rem clamp(1rem, 3vw, 2rem) 0;
+      scrollbar-gutter: stable;
+    }
+    .transcript-scroll::after {
+      content: "";
+      pointer-events: none;
+      position: sticky;
+      bottom: 0;
+      display: block;
+      height: 28px;
+      margin-top: -28px;
+      background: linear-gradient(to bottom, transparent, var(--paper));
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .transcript-scroll::after { display: none; }
+    }
+
+    #transcript {
+      font-family: var(--font-reading);
+      font-size: calc(var(--text-lg) * var(--transcript-scale, 1));
+      line-height: 1.65;
+      color: var(--ink);
+      max-width: 72rem;
+      margin: 0 auto;
+      /* Bottom padding + room past the sticky fade so the last line isn’t covered */
+      padding-bottom: calc(1.15rem + 28px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #transcript .sent { transition: none; }
+    }
+    #transcript .page-mark {
+      font-family: var(--font-ui);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin: 1.1rem 0 0.45rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid var(--line);
+    }
+    #transcript .page-mark:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+    #transcript .sent-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.15rem 0.55rem;
+      margin: 0.25rem 0;
+      align-items: start;
+    }
+    @media (min-width: 640px) {
+      #transcript .sent-row {
+        grid-template-columns: 2.5rem 1fr;
+      }
+    }
+    #transcript .sent-num {
+      font-family: var(--font-ui);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      padding-top: 0.2rem;
+      user-select: none;
+    }
+    @media (max-width: 639px) {
+      #transcript .sent-num { display: none; }
+    }
+    #transcript .sent {
+      cursor: pointer;
+      border-radius: 6px;
+      padding: 0.15em 0.25em;
+      margin: 0 -0.08em;
+      border-left: 3px solid transparent;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    #transcript .sent:hover {
+      background: var(--ember-soft);
+    }
+    #transcript .sent.active {
+      background: var(--sage-soft);
+      border-left-color: var(--sage);
+      box-shadow: inset 0 0 0 1px rgba(47, 111, 94, 0.2);
+    }
+
+    .skeleton-block {
+      margin: 0 1rem 0.5rem;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(
+        90deg,
+        var(--paper-warm) 0%,
+        #f0ebe4 50%,
+        var(--paper-warm) 100%
+      );
+      background-size: 200% 100%;
+      animation: sk 1.15s ease-in-out infinite;
+      min-height: 4rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton-block { animation: none; background: var(--paper-warm); }
+    }
+    @keyframes sk {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+    .skeleton-block[hidden] { display: none !important; }
+
+    .more-advanced {
+      border-top: 1px solid var(--line);
+      padding-top: 0.85rem;
+    }
+    .more-toggle {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.4rem 0.15rem;
+      margin: 0;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--muted);
+      cursor: pointer;
+      text-align: left;
+      box-shadow: none;
+    }
+    .more-toggle:hover:not(:disabled) {
+      background: rgba(47, 111, 94, 0.06);
+      color: var(--ink-soft);
+    }
+    .more-toggle:active:not(:disabled) {
+      transform: none;
+    }
+    .more-chevron {
+      flex-shrink: 0;
+      font-size: 0.65rem;
+      line-height: 1;
+      color: var(--muted);
+      transition: transform 0.18s ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .more-chevron { transition: none; }
+    }
+    .more-toggle[aria-expanded="true"] .more-chevron {
+      transform: rotate(-180deg);
+    }
+    .more-panel {
+      padding: 0.55rem 0 0;
+    }
+    .more-panel[hidden] {
+      display: none !important;
+    }
+
+    .rail-card {
+      overflow: visible;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-root">
+    <header class="brand-header">
+      <div class="brand-mark">
+        <h1 class="logo">read<span class="logo-accent">.</span>better</h1>
+        <p class="tagline">Voiced documents with a live transcript — follow every sentence.</p>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div class="app-grid">
+        <aside class="control-rail" aria-label="Controls">
+          <div class="rail-card">
+            <div class="upload-row">
+              <div class="drop-zone" id="dropZone" tabindex="-1">
+                <input id="pdf" class="file-input-hidden" type="file" accept="application/pdf" aria-label="Choose PDF file" />
+                <button type="button" id="pickPdfBtn" class="secondary">Choose PDF</button>
+                <p class="hint">
+                  <strong>Drop a PDF</strong> or browse · up to 12&nbsp;MB
+                </p>
+              </div>
+            </div>
+
+            <div class="control-groups">
+              <nav class="transport control-group" aria-label="Playback">
+                <button type="button" id="playBtn" disabled>Play</button>
+                <button type="button" id="pauseBtn" class="secondary" disabled>Pause</button>
+                <button type="button" id="replayBtn" class="secondary" disabled>Replay</button>
+              </nav>
+
+              <div class="control-group" aria-label="Position in document">
+                <span class="control-group-label">Seek</span>
+                <div class="seek-row">
+                  <span id="seekLabel"></span>
+                  <input
+                    type="range"
+                    id="seekBar"
+                    min="0"
+                    max="0"
+                    value="0"
+                    disabled
+                    aria-label="Current sentence"
+                  />
+                </div>
+                <label class="field-label seek-page-row">Page
+                  <select id="pageJump" disabled aria-label="Jump to page">
+                    <option value="">—</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="control-group" aria-label="Voice settings">
+                <span class="control-group-label">Voice</span>
+                <label class="field-label">Narrator
+                  <select id="voice" aria-label="TTS voice">
+                    <option value="alloy">alloy</option>
+                    <option value="echo">echo</option>
+                    <option value="fable">fable</option>
+                    <option value="onyx">onyx</option>
+                    <option value="nova">nova</option>
+                    <option value="shimmer">shimmer</option>
+                  </select>
+                </label>
+                <label class="field-label">Speed
+                  <input type="range" id="rate" min="0.5" max="1.5" step="0.05" value="1" aria-label="Speech speed" />
+                </label>
+              </div>
+
+              <div class="more-advanced">
+                <button
+                  type="button"
+                  class="more-toggle"
+                  id="moreToggle"
+                  aria-expanded="false"
+                  aria-controls="moreOptionsPanel"
+                >
+                  <span>More options</span>
+                  <span class="more-chevron" aria-hidden="true">▾</span>
+                </button>
+                <div
+                  class="more-panel"
+                  id="moreOptionsPanel"
+                  role="region"
+                  aria-label="More options"
+                  hidden
+                >
+                  <label class="field-label" title="If OpenAI TTS fails">
+                    <input type="checkbox" id="useBrowser" />
+                    Browser voice fallback
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="status-wrap">
+              <p class="status" id="status" role="status" data-state=""></p>
+            </div>
+            <div class="err-banner" id="err" hidden role="alert">
+              <span class="err-text" id="errText"></span>
+              <button type="button" class="err-dismiss ghost" id="errDismiss" aria-label="Dismiss error">Dismiss</button>
+            </div>
+          </div>
+        </aside>
+
+        <div class="stage">
+          <div class="doc-layout">
+            <div class="panel panel-pdf">
+              <h2 class="panel-head">Document</h2>
+              <div class="pdf-toolbar">
+                <button type="button" id="pdfZoomOut" class="secondary pdf-tool" aria-label="Zoom out" disabled>−</button>
+                <button type="button" id="pdfZoomIn" class="secondary pdf-tool" aria-label="Zoom in" disabled>+</button>
+                <button type="button" id="pdfZoomFit" class="secondary pdf-tool" disabled>Fit width</button>
+                <span class="zoom-label" id="pdfZoomPct" aria-live="polite">100%</span>
+              </div>
+              <div class="pdf-scroll" id="pdfScroll">
+                <div id="pdfViewer" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="panel panel-transcript">
+              <div class="panel-head transcript-head">
+                <h2 class="head-title">Transcript</h2>
+                <label class="transcript-size-label">
+                  Text size
+                  <input type="range" id="transcriptSize" min="0.8" max="1.45" step="0.05" value="1" aria-label="Transcript text size" />
+                </label>
+              </div>
+              <div class="skeleton-block" id="transcriptSkeleton" hidden></div>
+              <div class="transcript-scroll">
+                <div id="transcript"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+<script type="module">
+    import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.mjs";
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.mjs";
+
+    const MAX_PAGES = 80;
+
+    const pdfInput = document.getElementById("pdf");
+    const pickPdfBtn = document.getElementById("pickPdfBtn");
+    const dropZone = document.getElementById("dropZone");
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const replayBtn = document.getElementById("replayBtn");
+    const pageJump = document.getElementById("pageJump");
+    const seekBar = document.getElementById("seekBar");
+    const seekLabel = document.getElementById("seekLabel");
+    const rateEl = document.getElementById("rate");
+    const voiceEl = document.getElementById("voice");
+    const useBrowserEl = document.getElementById("useBrowser");
+    const pdfViewer = document.getElementById("pdfViewer");
+    const pdfScroll = document.getElementById("pdfScroll");
+    const pdfZoomInBtn = document.getElementById("pdfZoomIn");
+    const pdfZoomOutBtn = document.getElementById("pdfZoomOut");
+    const pdfZoomFitBtn = document.getElementById("pdfZoomFit");
+    const pdfZoomPctEl = document.getElementById("pdfZoomPct");
+    const transcriptSizeEl = document.getElementById("transcriptSize");
+    const transcriptEl = document.getElementById("transcript");
+    const transcriptSkeleton = document.getElementById("transcriptSkeleton");
+    const statusEl = document.getElementById("status");
+    const errEl = document.getElementById("err");
+    const errText = document.getElementById("errText");
+    const errDismiss = document.getElementById("errDismiss");
+    const moreToggle = document.getElementById("moreToggle");
+    const moreOptionsPanel = document.getElementById("moreOptionsPanel");
+
+    function prefersReducedMotion() {
+      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+    function scrollOpts() {
+      return { block: "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" };
+    }
+
+    /** @type {{ text: string, normStart: number, normEnd: number, startPage: number, endPage: number }[]} */
+    let serverSentences = [];
+    let normServer = "";
+    let overlayEnabled = false;
+    let ocrUsed = false;
+    let llmRefined = false;
+    let pageCount = 0;
+
+    /** @type {HTMLSpanElement[]} */
+    let wordSpans = [];
+    /** @type {{ start: number, end: number }[]} */
+    let spanNormRanges = [];
+
+    let idx = 0;
+    let chainActive = false;
+    let playbackToken = 0;
+    /** @type {any} */
+    let pdfViewDoc = null;
+    let pdfViewNumPages = 0;
+    /** @type {{ item: any; pageNum: number; globalIdx: number }[]} */
+    let pdfViewFlat = [];
+    let pdfZoomFactor = 1;
+    /** @type {HTMLAudioElement | null} */
+    let currentAudio = null;
+    /** @type {string | null} */
+    let currentAudioUrl = null;
+
+    /** sentenceIndex -> blob URL for OpenAI TTS (filled before playback reaches that sentence) */
+    const ttsPrefetch = new Map();
+    const ttsPrefetchInflight = new Set();
+    /** Bumps when voice/speed changes so stale fetches are not cached */
+    let ttsSettingsVersion = 0;
+
+    function clearTtsPrefetch() {
+      for (const url of ttsPrefetch.values()) {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (_) {}
+      }
+      ttsPrefetch.clear();
+      ttsPrefetchInflight.clear();
+    }
+
+    /**
+     * Prefetch audio for indices around the current sentence (reduces lag after seek / skip).
+     */
+    function warmPrefetchAround(centerIdx) {
+      if (useBrowserEl.checked) return;
+      prefetchTtsForIndex(centerIdx - 1);
+      prefetchTtsForIndex(centerIdx);
+      prefetchTtsForIndex(centerIdx + 1);
+      prefetchTtsForIndex(centerIdx + 2);
+    }
+
+    /**
+     * Fetch TTS for a sentence in the background so the next clip is ready during the current one.
+     */
+    function prefetchTtsForIndex(i) {
+      if (useBrowserEl.checked) return;
+      if (i < 0 || i >= serverSentences.length) return;
+      if (ttsPrefetch.has(i) || ttsPrefetchInflight.has(i)) return;
+      ttsPrefetchInflight.add(i);
+      const versionAtFetch = ttsSettingsVersion;
+      const text = serverSentences[i].text;
+      fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          voice: voiceEl.value,
+          speed: parseFloat(rateEl.value),
+        }),
+      })
+        .then((res) => {
+          if (!res.ok) return null;
+          return res.blob();
+        })
+        .then((blob) => {
+          ttsPrefetchInflight.delete(i);
+          if (versionAtFetch !== ttsSettingsVersion || !blob) return;
+          const url = URL.createObjectURL(blob);
+          if (ttsPrefetch.has(i)) {
+            URL.revokeObjectURL(url);
+            return;
+          }
+          ttsPrefetch.set(i, url);
+        })
+        .catch(() => {
+          ttsPrefetchInflight.delete(i);
+        });
+    }
+
+    function setStatusState(state, text) {
+      statusEl.dataset.state = state || "";
+      statusEl.textContent = text || "";
+    }
+
+    function showErr(msg) {
+      errEl.hidden = !msg;
+      errText.textContent = msg || "";
+    }
+
+    errDismiss.addEventListener("click", () => {
+      showErr("");
+      setStatusState("", "");
+    });
+
+    moreToggle?.addEventListener("click", () => {
+      if (!moreOptionsPanel) return;
+      const willOpen = moreOptionsPanel.hidden;
+      moreOptionsPanel.hidden = !willOpen;
+      moreToggle.setAttribute("aria-expanded", String(willOpen));
+    });
+
+    function syncPdfZoomLabel() {
+      if (pdfZoomPctEl) {
+        pdfZoomPctEl.textContent = pdfViewDoc ? `${Math.round(pdfZoomFactor * 100)}%` : "—";
+      }
+    }
+
+    function setPdfZoomEnabled(on) {
+      if (pdfZoomInBtn) pdfZoomInBtn.disabled = !on;
+      if (pdfZoomOutBtn) pdfZoomOutBtn.disabled = !on;
+      if (pdfZoomFitBtn) pdfZoomFitBtn.disabled = !on;
+    }
+
+    async function computeFitScale(pdf) {
+      const p1 = await pdf.getPage(1);
+      const w = p1.getViewport({ scale: 1 }).width;
+      const cw = Math.max(120, (pdfScroll?.clientWidth ?? 360) - 36);
+      return Math.min(Math.max(cw / w, 0.1), 4.5);
+    }
+
+    async function paintPdfPages(pdf, numPages, flat, scale) {
+      pdfViewer.innerHTML = "";
+      wordSpans = [];
+      for (let p = 1; p <= numPages; p++) {
+        const page = await pdf.getPage(p);
+        const viewport = page.getViewport({ scale });
+        const wrap = document.createElement("div");
+        wrap.className = "pdf-page-wrap";
+        wrap.style.width = viewport.width + "px";
+        wrap.style.height = viewport.height + "px";
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        const textLayer = document.createElement("div");
+        textLayer.className = "textLayer";
+        if (!overlayEnabled) {
+          textLayer.style.display = "none";
+        }
+
+        const tc = await page.getTextContent();
+        const pageItems = flat.filter((x) => x.pageNum === p);
+        let pi = 0;
+        for (const item of tc.items) {
+          if (!item.str) continue;
+          const entry = pageItems[pi++];
+          if (!entry) continue;
+          const globalIdx = entry.globalIdx;
+          const nr = spanNormRanges[globalIdx];
+          if (!nr) continue;
+
+          const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+          const fontSize = Math.hypot(tx[2], tx[3]);
+          const span = document.createElement("span");
+          span.className = "word-span";
+          span.textContent = item.str;
+          span.style.left = tx[4] + "px";
+          span.style.top = tx[5] + "px";
+          span.style.fontSize = fontSize + "px";
+          const angle = Math.atan2(tx[1], tx[0]);
+          if (Math.abs(angle) > 0.01) {
+            span.style.transform = `rotate(${angle}rad)`;
+          }
+          span.dataset.ns = String(nr.start);
+          span.dataset.ne = String(nr.end);
+          span.addEventListener("click", () => {
+            const rSpan = nr;
+            const si = serverSentences.findIndex(
+              (s) => s.normStart < rSpan.end && s.normEnd > rSpan.start
+            );
+            if (si >= 0) seekToSentence(si, true);
+          });
+          textLayer.appendChild(span);
+          wordSpans.push(span);
+        }
+        wrap.appendChild(canvas);
+        wrap.appendChild(textLayer);
+        pdfViewer.appendChild(wrap);
+      }
+      syncPdfZoomLabel();
+    }
+
+    let pdfReflowRunning = false;
+    let pdfReflowPending = false;
+
+    async function refitAndPaintPdf() {
+      if (!pdfViewDoc || pdfViewNumPages < 1) return;
+      if (pdfReflowRunning) {
+        pdfReflowPending = true;
+        return;
+      }
+      pdfReflowRunning = true;
+      try {
+        do {
+          pdfReflowPending = false;
+          const base = await computeFitScale(pdfViewDoc);
+          const scale = base * pdfZoomFactor;
+          await paintPdfPages(pdfViewDoc, pdfViewNumPages, pdfViewFlat, scale);
+        } while (pdfReflowPending);
+      } finally {
+        pdfReflowRunning = false;
+      }
+    }
+
+    pickPdfBtn.addEventListener("click", () => pdfInput.click());
+
+    ["dragenter", "dragover"].forEach((ev) => {
+      dropZone.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!dropZone.classList.contains("extracting")) dropZone.classList.add("dragover");
+      });
+    });
+    ["dragleave", "drop"].forEach((ev) => {
+      dropZone.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove("dragover");
+      });
+    });
+    dropZone.addEventListener("drop", (e) => {
+      if (dropZone.classList.contains("extracting")) return;
+      const f = e.dataTransfer?.files?.[0];
+      if (f && f.type === "application/pdf") {
+        const dt = new DataTransfer();
+        dt.items.add(f);
+        pdfInput.files = dt.files;
+        pdfInput.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+
+    function normOffset(raw, prefixLen) {
+      return raw.slice(0, prefixLen).replace(/\s+/g, " ").trim().length;
+    }
+
+    /**
+     * Stop current playback and invalidate in-flight speak steps. Does not clear TTS prefetch cache
+     * so seeks and skips stay snappy.
+     */
+    function stopPlaybackAudio() {
+      playbackToken++;
+      chainActive = false;
+      if (currentAudio) {
+        currentAudio.pause();
+        try {
+          currentAudio.removeAttribute("src");
+        } catch (_) {}
+        currentAudio = null;
+      }
+      if (currentAudioUrl) {
+        try {
+          URL.revokeObjectURL(currentAudioUrl);
+        } catch (_) {}
+        currentAudioUrl = null;
+      }
+      speechSynthesis.cancel();
+    }
+
+    /** New document or explicit reset: stop audio and drop all cached clips. */
+    function stopPlaybackAndClearTtsCache() {
+      stopPlaybackAudio();
+      clearTtsPrefetch();
+    }
+
+    function scrollPdfToPage(p) {
+      const wraps = pdfViewer.querySelectorAll(".pdf-page-wrap");
+      const el = wraps[p - 1];
+      if (el) el.scrollIntoView(scrollOpts());
+    }
+
+    function syncSeekUi() {
+      const n = serverSentences.length;
+      seekBar.disabled = n === 0;
+      seekBar.max = Math.max(0, n - 1);
+      seekBar.value = String(Math.min(idx, Math.max(0, n - 1)));
+      if (n === 0) {
+        seekLabel.textContent = "";
+        seekBar.setAttribute("aria-valuetext", "No sentences");
+        return;
+      }
+      const pct = ((idx + 1) / n) * 100;
+      seekLabel.textContent = `Sentence ${idx + 1} / ${n} (${pct.toFixed(0)}%)`;
+      seekBar.setAttribute(
+        "aria-valuetext",
+        `Sentence ${idx + 1} of ${n}, ${pct.toFixed(0)} percent through document`
+      );
+    }
+
+    /**
+     * @param {number} i
+     * @param {{ scrollPdf?: boolean, scrollOverlayWord?: boolean }} [opts]
+     * During chained playback, scrollPdf/scrollOverlayWord are false. We do not call scrollIntoView on
+     * the active transcript row — that was scrolling the window/panel every sentence; follow audio manually in the transcript.
+     */
+    function setActiveSentence(i, opts = {}) {
+      const { scrollPdf = true, scrollOverlayWord = true } = opts;
+      idx = Math.max(0, Math.min(i, serverSentences.length - 1));
+      const s = serverSentences[idx];
+      if (!s) {
+        syncSeekUi();
+        return;
+      }
+
+      transcriptEl.querySelectorAll("span.sent").forEach((el, j) => {
+        el.classList.toggle("active", j === idx);
+      });
+
+      if (overlayEnabled && wordSpans.length) {
+        wordSpans.forEach((span, si) => {
+          const { start: ns, end: ne } = spanNormRanges[si];
+          span.classList.toggle("active", ns < s.normEnd && ne > s.normStart);
+        });
+        if (scrollOverlayWord) {
+          const hit = wordSpans.find((_, si) => {
+            const { start: ns, end: ne } = spanNormRanges[si];
+            return ns < s.normEnd && ne > s.normStart;
+          });
+          if (hit) hit.scrollIntoView(scrollOpts());
+        }
+      } else if (scrollPdf) {
+        scrollPdfToPage(s.startPage);
+      }
+      syncSeekUi();
+    }
+
+    function seekToSentence(i, startPlayback) {
+      const n = serverSentences.length;
+      if (!n) return;
+      const target = Math.max(0, Math.min(i, n - 1));
+      if (chainActive || currentAudio) {
+        stopPlaybackAudio();
+      }
+      idx = target;
+      setActiveSentence(idx);
+      warmPrefetchAround(idx);
+      if (startPlayback) playFromCurrent(true);
+    }
+
+    function buildTranscript() {
+      transcriptEl.innerHTML = "";
+      let prevStartPage = -1;
+      serverSentences.forEach((s, i) => {
+        if (s.startPage !== prevStartPage) {
+          const mark = document.createElement("div");
+          mark.className = "page-mark";
+          mark.textContent = `Page ${s.startPage}` + (s.endPage > s.startPage ? `–${s.endPage}` : "");
+          transcriptEl.appendChild(mark);
+          prevStartPage = s.startPage;
+        }
+        const row = document.createElement("div");
+        row.className = "sent-row";
+        row.dataset.i = String(i);
+        const num = document.createElement("span");
+        num.className = "sent-num";
+        num.textContent = String(i + 1);
+        const span = document.createElement("span");
+        span.className = "sent";
+        span.dataset.i = String(i);
+        span.setAttribute("role", "button");
+        span.setAttribute("tabindex", "0");
+        span.textContent = s.text + " ";
+        span.addEventListener("click", () => seekToSentence(i, true));
+        span.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            seekToSentence(i, true);
+          }
+        });
+        row.appendChild(num);
+        row.appendChild(span);
+        transcriptEl.appendChild(row);
+      });
+    }
+
+    async function speakSentenceOpenAI(i, runId) {
+      if (runId !== playbackToken) return;
+      // Pipeline: keep a window ahead while we play N (or use cache from warm prefetch)
+      prefetchTtsForIndex(i + 1);
+      prefetchTtsForIndex(i + 2);
+      prefetchTtsForIndex(i + 3);
+
+      let url;
+      if (ttsPrefetch.has(i)) {
+        url = ttsPrefetch.get(i);
+        ttsPrefetch.delete(i);
+      } else if (ttsPrefetchInflight.has(i)) {
+        const t0 = Date.now();
+        while (
+          runId === playbackToken &&
+          ttsPrefetchInflight.has(i) &&
+          !ttsPrefetch.has(i) &&
+          Date.now() - t0 < 120000
+        ) {
+          await new Promise((r) => setTimeout(r, 40));
+        }
+        if (runId !== playbackToken) return;
+        if (ttsPrefetch.has(i)) {
+          url = ttsPrefetch.get(i);
+          ttsPrefetch.delete(i);
+        }
+      }
+      if (!url) {
+        const text = serverSentences[i].text;
+        const res = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text,
+            voice: voiceEl.value,
+            speed: parseFloat(rateEl.value),
+          }),
+        });
+        if (runId !== playbackToken) return;
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || res.statusText);
+        }
+        const blob = await res.blob();
+        if (runId !== playbackToken) return;
+        url = URL.createObjectURL(blob);
+        if (runId !== playbackToken) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+      }
+      currentAudioUrl = url;
+      const audio = new Audio(url);
+      currentAudio = audio;
+      await new Promise((resolve, reject) => {
+        const cleanup = () => {
+          if (currentAudioUrl === url) {
+            try {
+              URL.revokeObjectURL(url);
+            } catch (_) {}
+            currentAudioUrl = null;
+          }
+          if (currentAudio === audio) currentAudio = null;
+        };
+        audio.onended = () => {
+          cleanup();
+          resolve();
+        };
+        audio.onerror = () => {
+          const stale = runId !== playbackToken;
+          cleanup();
+          if (stale) resolve();
+          else reject(new Error("Audio playback failed"));
+        };
+        audio.play().catch((e) => {
+          const stale = runId !== playbackToken;
+          cleanup();
+          if (stale) resolve();
+          else reject(e);
+        });
+      });
+    }
+
+    function speakSentenceBrowser(i, runId) {
+      return new Promise((resolve, reject) => {
+        if (runId !== playbackToken) {
+          resolve();
+          return;
+        }
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(serverSentences[i].text);
+        u.rate = parseFloat(rateEl.value);
+        u.onend = () => resolve();
+        u.onerror = () => {
+          if (runId !== playbackToken) resolve();
+          else reject(new Error("Speech synthesis error"));
+        };
+        speechSynthesis.speak(u);
+      });
+    }
+
+    async function playFromCurrent(chain) {
+      if (!serverSentences.length) return;
+      if (chainActive || currentAudio) {
+        stopPlaybackAudio();
+      }
+      const runId = playbackToken;
+      chainActive = !!chain;
+
+      if (!useBrowserEl.checked) {
+        warmPrefetchAround(idx);
+      }
+
+      async function step() {
+        if (runId !== playbackToken) return;
+        if (idx >= serverSentences.length) {
+          chainActive = false;
+          setStatusState("done", "Finished reading.");
+          return;
+        }
+        setActiveSentence(idx, { scrollPdf: false, scrollOverlayWord: false });
+        setStatusState("playing", `Reading sentence ${idx + 1} / ${serverSentences.length}`);
+        try {
+          if (useBrowserEl.checked) {
+            await speakSentenceBrowser(idx, runId);
+          } else {
+            await speakSentenceOpenAI(idx, runId);
+          }
+        } catch (e) {
+          if (runId !== playbackToken) return;
+          if (!useBrowserEl.checked) {
+            showErr(String(e) + " — try Browser voice fallback or check API key.");
+            try {
+              await speakSentenceBrowser(idx, runId);
+              showErr("");
+            } catch (e2) {
+              showErr(String(e2));
+              return;
+            }
+          } else {
+            showErr(String(e));
+            return;
+          }
+        }
+        if (runId !== playbackToken) return;
+        if (chainActive && runId === playbackToken) {
+          idx++;
+          await step();
+        }
+      }
+      await step();
+    }
+
+    voiceEl.addEventListener("change", () => {
+      ttsSettingsVersion++;
+      clearTtsPrefetch();
+    });
+
+    rateEl.addEventListener("change", () => {
+      ttsSettingsVersion++;
+      clearTtsPrefetch();
+    });
+
+    seekBar.addEventListener("input", () => {
+      const i = parseInt(seekBar.value, 10);
+      if (!Number.isFinite(i)) return;
+      if (chainActive || currentAudio) {
+        stopPlaybackAudio();
+      }
+      idx = Math.max(0, Math.min(i, serverSentences.length - 1));
+      setActiveSentence(idx);
+      warmPrefetchAround(idx);
+    });
+
+    pageJump.addEventListener("change", () => {
+      const p = parseInt(pageJump.value, 10);
+      if (!Number.isFinite(p) || p < 1) return;
+      const si = serverSentences.findIndex((s) => s.startPage <= p && s.endPage >= p);
+      if (si >= 0) seekToSentence(si, false);
+      pageJump.value = "";
+    });
+
+    pdfInput.addEventListener("change", async () => {
+      const f = pdfInput.files?.[0];
+      if (!f) return;
+      showErr("");
+      setStatusState("extracting", "Extracting text…");
+      transcriptSkeleton.hidden = false;
+      dropZone.classList.add("extracting");
+      pdfViewDoc = null;
+      pdfViewFlat = [];
+      pdfViewNumPages = 0;
+      setPdfZoomEnabled(false);
+      syncPdfZoomLabel();
+      playBtn.disabled = pauseBtn.disabled = replayBtn.disabled = true;
+      seekBar.disabled = true;
+      pageJump.disabled = true;
+      pageJump.innerHTML = '<option value="">—</option>';
+      stopPlaybackAndClearTtsCache();
+      pdfViewer.innerHTML = "";
+      transcriptEl.innerHTML = "";
+      wordSpans = [];
+      spanNormRanges = [];
+      serverSentences = [];
+      overlayEnabled = false;
+      syncSeekUi();
+
+      const buf = await f.arrayBuffer();
+
+      let extractData;
+      try {
+        const fd = new FormData();
+        fd.append("file", f);
+        const res = await fetch("/api/extract", { method: "POST", body: fd });
+        extractData = await res.json();
+        if (!res.ok) {
+          showErr(extractData.error || "Extract failed");
+          transcriptSkeleton.hidden = true;
+          dropZone.classList.remove("extracting");
+          setStatusState("", "");
+          return;
+        }
+      } catch (e) {
+        showErr(String(e));
+        transcriptSkeleton.hidden = true;
+        dropZone.classList.remove("extracting");
+        setStatusState("", "");
+        return;
+      }
+
+      serverSentences = extractData.sentences || [];
+      normServer = extractData.norm || "";
+      ocrUsed = !!extractData.ocr_used;
+      llmRefined = !!extractData.llm_refined;
+      pageCount = extractData.page_count || 0;
+
+      if (!serverSentences.length) {
+        showErr("No sentences to read.");
+        transcriptSkeleton.hidden = true;
+        dropZone.classList.remove("extracting");
+        setStatusState("", "");
+        return;
+      }
+
+      let pdf;
+      try {
+        pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      } catch (e) {
+        showErr("PDF preview failed: " + e);
+        transcriptSkeleton.hidden = true;
+        dropZone.classList.remove("extracting");
+        setStatusState("", "");
+        return;
+      }
+
+      const numPages = Math.min(pdf.numPages, MAX_PAGES);
+
+      const flat = [];
+      let gi = 0;
+      for (let p = 1; p <= numPages; p++) {
+        const page = await pdf.getPage(p);
+        const tc = await page.getTextContent();
+        for (const item of tc.items) {
+          if (item.str) flat.push({ item, pageNum: p, globalIdx: gi++ });
+        }
+      }
+      const allItems = flat.map((x) => x.item);
+      const rawClient = allItems.map((i) => i.str).join("");
+      const normClient = rawClient.replace(/\s+/g, " ").trim();
+      const drift =
+        normServer.length > 0
+          ? Math.abs(normClient.length - normServer.length) / normServer.length
+          : 1;
+      overlayEnabled = !ocrUsed && !llmRefined && drift < 0.12;
+
+      for (let i = 0; i < allItems.length; i++) {
+        const rs = allItems.slice(0, i).reduce((a, x) => a + x.str.length, 0);
+        const re = rs + allItems[i].str.length;
+        spanNormRanges.push({
+          start: normOffset(rawClient, rs),
+          end: normOffset(rawClient, re),
+        });
+      }
+
+      pdfViewDoc = pdf;
+      pdfViewNumPages = numPages;
+      pdfViewFlat = flat;
+      pdfZoomFactor = 1;
+      try {
+        await refitAndPaintPdf();
+      } catch (renderErr) {
+        showErr("PDF preview failed: " + renderErr);
+        transcriptSkeleton.hidden = true;
+        dropZone.classList.remove("extracting");
+        setStatusState("", "");
+        setPdfZoomEnabled(false);
+        return;
+      }
+      setPdfZoomEnabled(true);
+
+      buildTranscript();
+      for (let p = 1; p <= pageCount; p++) {
+        const opt = document.createElement("option");
+        opt.value = String(p);
+        opt.textContent = `Page ${p}`;
+        pageJump.appendChild(opt);
+      }
+      pageJump.disabled = false;
+
+      idx = 0;
+      setActiveSentence(0);
+      transcriptSkeleton.hidden = true;
+      dropZone.classList.remove("extracting");
+      setStatusState("ready", "Ready to read!");
+      playBtn.disabled = pauseBtn.disabled = replayBtn.disabled = false;
+      if (!useBrowserEl.checked) {
+        warmPrefetchAround(0);
+      }
+    });
+
+    playBtn.addEventListener("click", () => playFromCurrent(true));
+
+    pauseBtn.addEventListener("click", () => {
+      stopPlaybackAudio();
+      setStatusState("paused", "Paused.");
+    });
+
+    document.addEventListener("keydown", (ev) => {
+      if (ev.code !== "Space") return;
+      const t = ev.target;
+      if (
+        t instanceof HTMLInputElement ||
+        t instanceof HTMLTextAreaElement ||
+        t instanceof HTMLSelectElement ||
+        (t instanceof HTMLElement && t.isContentEditable)
+      ) {
+        return;
+      }
+      if (t instanceof HTMLButtonElement || t instanceof HTMLAnchorElement) return;
+      if (t.closest("#transcript .sent")) return;
+      ev.preventDefault();
+      if (!serverSentences.length) return;
+      if (chainActive) {
+        pauseBtn.click();
+      } else {
+        playBtn.click();
+      }
+    });
+
+    replayBtn.addEventListener("click", async () => {
+      if (!serverSentences.length) return;
+      stopPlaybackAudio();
+      const runId = playbackToken;
+      chainActive = false;
+      setActiveSentence(idx);
+      warmPrefetchAround(idx);
+      setStatusState("paused", `Replaying sentence ${idx + 1}`);
+      try {
+        if (useBrowserEl.checked) await speakSentenceBrowser(idx, runId);
+        else await speakSentenceOpenAI(idx, runId);
+      } catch (e) {
+        if (runId !== playbackToken) return;
+        if (!useBrowserEl.checked) {
+          try {
+            await speakSentenceBrowser(idx, runId);
+          } catch (e2) {
+            showErr(String(e2));
+          }
+        } else showErr(String(e));
+      }
+    });
+
+    pdfZoomInBtn?.addEventListener("click", () => {
+      if (!pdfViewDoc) return;
+      pdfZoomFactor = Math.min(pdfZoomFactor * 1.18, 4);
+      void refitAndPaintPdf();
+    });
+    pdfZoomOutBtn?.addEventListener("click", () => {
+      if (!pdfViewDoc) return;
+      pdfZoomFactor = Math.max(pdfZoomFactor / 1.18, 0.4);
+      void refitAndPaintPdf();
+    });
+    pdfZoomFitBtn?.addEventListener("click", () => {
+      if (!pdfViewDoc) return;
+      pdfZoomFactor = 1;
+      void refitAndPaintPdf();
+    });
+
+    if (transcriptSizeEl) {
+      document.documentElement.style.setProperty("--transcript-scale", transcriptSizeEl.value);
+      transcriptSizeEl.addEventListener("input", () => {
+        document.documentElement.style.setProperty("--transcript-scale", transcriptSizeEl.value);
+      });
+    }
+
+    let winResizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(winResizeTimer);
+      winResizeTimer = setTimeout(() => {
+        void refitAndPaintPdf();
+      }, 280);
+    });
+  </script>
+</body>
+</html>
